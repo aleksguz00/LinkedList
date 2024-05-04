@@ -1,5 +1,6 @@
 #include <iostream>
 #include <initializer_list>
+#include <memory>
 
 template<class T>
 class List;
@@ -8,9 +9,9 @@ template <class T>
 class ListNode {
 private:
     T data_;
-    ListNode<T>* next;
-    ListNode<T>* prev;
-
+    std::shared_ptr<ListNode<T>> next;
+    std::shared_ptr<ListNode<T>> prev;
+public:
     explicit ListNode() = default;
     explicit ListNode(T data) : data_{ data } {}
 
@@ -21,7 +22,7 @@ template <class T>
 class List {
 public:
     List(std::initializer_list<T> init_list) : 
-        head{ new ListNode<T>(*init_list.begin()) }, tail{ head } {
+        head{ std::make_shared<ListNode<T>>(*init_list.begin()) }, tail{ head } {
             for (auto it = init_list.begin() + 1; it != init_list.end(); ++it) {
                 AddEnd(*it);
             }
@@ -33,7 +34,7 @@ public:
     List() : head{ nullptr }, tail{ nullptr } {}
 
     void AddStart(T n) {
-        ListNode<T>* node = new ListNode{ n };
+        auto node = std::make_shared<ListNode<T>>(n);
 
         if (head == nullptr) tail = node;
         else {
@@ -45,7 +46,7 @@ public:
     }
 
     void AddEnd(T n) {
-        ListNode<T>* node = new ListNode{ n };
+        auto node = std::make_shared<ListNode<T>>(n);
 
         if (head == nullptr) {
             head = node;
@@ -59,10 +60,10 @@ public:
     }
 
     void InsertAfter(T after_n, T n) {
-        ListNode<T>* search_node = LinearSearch_(after_n);
+        auto search_node = LinearSearch_(after_n);
 
         if (search_node) {
-            ListNode<T>* node = new ListNode{ n };
+            auto node = std::make_shared<ListNode<T>>(n);
 
             if (search_node == tail) tail = node;
             if (search_node->next) search_node->next->prev = node;
@@ -72,7 +73,6 @@ public:
         }
     }
 
-    // Need to use smart pointers
     void PopFront() {
         if (head == nullptr) return;
 
@@ -88,7 +88,7 @@ public:
     }
 
     void Remove(T n) {
-        ListNode<T>* search_node = LinearSearch_(n);
+        auto search_node = LinearSearch_(n);
 
         if (search_node == tail) return;
 
@@ -106,7 +106,7 @@ public:
     void Print() const {
         if (head == nullptr) return;
 
-        ListNode<T>* current = head;
+        std::shared_ptr<ListNode<T>> current = head;
 
         while (current) {
             std::cout << current->data_ << ' ';
@@ -121,7 +121,7 @@ public:
         if (head == nullptr) return 0;
         if (head == tail) return 1;
 
-        ListNode<T>* current = head;
+        std::shared_ptr<ListNode<T>> current = head;
 
         while (current) {
             ++size;
@@ -132,12 +132,12 @@ public:
     }
 
 private:
-    ListNode<T>* head;
-    ListNode<T>* tail;
+    std::shared_ptr<ListNode<T>> head;
+    std::shared_ptr<ListNode<T>> tail;
 
     // Trouble with strings
-    ListNode<T>* LinearSearch_(T n) {
-        ListNode<T>* search_node = head;
+    std::shared_ptr<ListNode<T>> LinearSearch_(T n) const {
+        std::shared_ptr<ListNode<T>> search_node = head;
 
         while (search_node != nullptr) {
             if (search_node->data_ == n) return search_node;
@@ -152,5 +152,8 @@ int main() {
 
     list1.Print();
 
+    list1.Remove(4);
+
+    list1.Print();
     std::cout << list1.Size() << '\n';
 }
