@@ -1,4 +1,5 @@
 #include <iostream>
+#include <initializer_list>
 
 template <class T>
 class ListNode {
@@ -14,6 +15,16 @@ public:
 template <class T>
 class List {
 public:
+    List(std::initializer_list<T> init_list) : 
+        head{ new ListNode<T>(*init_list.begin()) }, tail{ head } {
+            for (auto it = init_list.begin() + 1; it != init_list.end(); ++it) {
+                AddEnd(*it);
+            }
+
+            while (tail->next != nullptr) {
+                tail = tail->next;
+            }
+        }
     List() : head{ nullptr }, tail{ nullptr } {}
 
     void AddStart(T n) {
@@ -99,6 +110,22 @@ public:
         std::cout << '\n';
     }
 
+    size_t Size() const {
+        size_t size = 0;
+
+        if (head == nullptr) return 0;
+        if (head == tail) return 1;
+
+        ListNode<T>* current = head;
+
+        while (current) {
+            ++size;
+            current = current->next;
+        }
+
+        return size;
+    }
+
 private:
     ListNode<T>* head;
     ListNode<T>* tail;
@@ -116,17 +143,9 @@ private:
 };
 
 int main() {
-    List<int> list1;
-
-    list1.AddStart(1);
-    list1.AddStart(2);
-    list1.AddStart(3);
-    list1.AddStart(4);
-    list1.AddEnd(10);
-    
-    list1.Print();
-
-    list1.Remove(555);
+    List<int> list1 { 1, 2, 3, 4, 5, 6 };
 
     list1.Print();
+
+    std::cout << list1.Size() << '\n';
 }
