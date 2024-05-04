@@ -1,15 +1,20 @@
 #include <iostream>
 #include <initializer_list>
 
+template<class T>
+class List;
+
 template <class T>
 class ListNode {
-public:
+private:
     T data_;
     ListNode<T>* next;
     ListNode<T>* prev;
 
     explicit ListNode() = default;
     explicit ListNode(T data) : data_{ data } {}
+
+    friend List<T>;
 };
 
 template <class T>
