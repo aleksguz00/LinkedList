@@ -13,7 +13,7 @@ private:
     std::shared_ptr<ListNode<T>> prev;
 public:
     explicit ListNode() = default;
-    explicit ListNode(T data) : data_{ data } {}
+    explicit ListNode(const T data) : data_{ data } {}
 
     friend List<T>;
 };
@@ -33,7 +33,7 @@ public:
         }
     List() : head{ nullptr }, tail{ nullptr } {}
 
-    void AddStart(T n) {
+    void AddStart(const T n) {
         auto node = std::make_shared<ListNode<T>>(n);
 
         if (head == nullptr) tail = node;
@@ -45,7 +45,7 @@ public:
         head = node;
     }
 
-    void AddEnd(T n) {
+    void AddEnd(const T n) {
         auto node = std::make_shared<ListNode<T>>(n);
 
         if (head == nullptr) {
@@ -59,7 +59,7 @@ public:
         tail = node;
     }
 
-    void InsertAfter(T after_n, T n) {
+    void InsertAfter(const T after_n, const T n) {
         auto search_node = LinearSearch_(after_n);
 
         if (search_node) {
@@ -87,7 +87,7 @@ public:
         tail = tail->prev;
     }
 
-    void Remove(T n) {
+    void Remove(const T n) {
         auto search_node = LinearSearch_(n);
 
         if (search_node == tail) return;
@@ -131,6 +131,38 @@ public:
         return size;
     }
 
+    T& operator[](const size_t index) {
+        if (index >= 0 && index < Size()) {
+            size_t i = 0;
+            std::shared_ptr<ListNode<T>> current = head;
+
+            while (current) {
+                if (i == index) return current->data_;
+                current = current->next;
+                ++i;
+            }
+        }
+        else {
+            throw std::out_of_range("Out of range!\n");
+        }
+    }
+
+    const T& operator[](const size_t index) const {
+        if (index >= 0 && index < Size()) {
+            size_t i = 0;
+            std::shared_ptr<ListNode<T>> current = head;
+
+            while (current) {
+                if (i == index) return current->data_;
+                current = current->next;
+                ++i;
+            }
+        }
+        else {
+            throw std::out_of_range("Out of range!\n");
+        }
+    }
+
 private:
     std::shared_ptr<ListNode<T>> head;
     std::shared_ptr<ListNode<T>> tail;
@@ -152,8 +184,7 @@ int main() {
 
     list1.Print();
 
-    list1.Remove(4);
+    list1[2] = 777;
 
     list1.Print();
-    std::cout << list1.Size() << '\n';
 }
