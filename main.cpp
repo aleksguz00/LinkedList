@@ -161,11 +161,16 @@ public:
     void Remove(const T n) {
         auto search_node = LinearSearch_(n);
 
-        if (search_node == tail_) return;
+        if (search_node == tail_) {
+            search_node->prev_->next_ = nullptr;
+            tail_ = search_node->prev_;
+            return;
+        }
 
         if (search_node == head_) {
             search_node->next_->prev_ = nullptr;
             head_ = search_node->next_;
+            return;
         }
 
         if (search_node) {
@@ -250,7 +255,6 @@ private:
     std::shared_ptr<ListNode<T>> head_;
     std::shared_ptr<ListNode<T>> tail_;
 
-    // Trouble with strings
     std::shared_ptr<ListNode<T>> LinearSearch_(T n) const {
         std::shared_ptr<ListNode<T>> search_node = head_;
 
@@ -263,14 +267,14 @@ private:
 };
 
 int main() {
-    List<int> list1{ 1, 2, 3, 4, 5 };
-    List<int> list2{ 4, 3, 5, 6 };
+    List<const char*> list1{ "Hello", "World", "Hey" };
+    List<const char*> list2{ "Oops!", "SP" };
 
-    list2 = std::move(list1);
+    List<int> list3{ 1, 2, 3 };
 
-    std::cout << "List 1 before: ";
     list1.Print();
 
-    std::cout << "List 2 before: ";
-    list2.Print();
+    list1.InsertAfter("World", "Check");
+
+    list1.Print();
 }
