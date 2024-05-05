@@ -9,8 +9,8 @@ template <class T>
 class ListNode {
 private:
     T data_;
-    std::shared_ptr<ListNode<T>> next;
-    std::shared_ptr<ListNode<T>> prev;
+    std::shared_ptr<ListNode<T>> next_;
+    std::shared_ptr<ListNode<T>> prev_;
 public:
     explicit ListNode() = default;
     explicit ListNode(const T data) : data_{ data } {}
@@ -27,19 +27,75 @@ public:
                 AddEnd(*it);
             }
 
-            while (tail->next != nullptr) {
-                tail = tail->next;
+            while (tail->next_ != nullptr) {
+                tail = tail->next_;
             }
         }
     List() : head{ nullptr }, tail{ nullptr } {}
+
+    List(const List& other) {
+        std::shared_ptr<ListNode<T>> current = nullptr;
+
+        if (other->head == nullptr) {
+            return;
+        }
+
+        if (head) {
+            Clear();
+        }
+
+        while (current) {
+            AddEnd(current->data_);
+            current = current->next_;
+        }
+
+        while (tail->next_) {
+            tail = tail->next_;
+        }
+    }
+
+    List (List&& other) {
+        // Add move ctor
+    }
+
+    List<T>& operator=(const List& other) {
+        if (&other == this) return *this;
+
+        std::shared_ptr<ListNode<T>> current = nullptr;
+
+        if (other.head == nullptr) {
+            return *this;
+        }
+
+        if (head) {
+            Clear();
+        }
+
+        current = other.head;
+
+        while (current) {
+            AddEnd(current->data_);
+            current = current->next_;
+        }
+
+        while (tail->next_) {
+            tail = tail->next_;
+        }
+
+        return *this;      
+    }
+
+    List<T>& operator=(List&& other) {
+        // Add move assignment operator
+    }
 
     void AddStart(const T n) {
         auto node = std::make_shared<ListNode<T>>(n);
 
         if (head == nullptr) tail = node;
         else {
-            head->prev = node;
-            node->next = head;
+            head->prev_ = node;
+            node->next_ = head;
         }
 
         head = node;
@@ -52,8 +108,8 @@ public:
             head = node;
         }
         else {
-            tail->next = node;
-            node->prev = tail;
+            tail->next_ = node;
+            node->prev_ = tail;
         }
         
         tail = node;
@@ -66,25 +122,25 @@ public:
             auto node = std::make_shared<ListNode<T>>(n);
 
             if (search_node == tail) tail = node;
-            if (search_node->next) search_node->next->prev = node;
-            node->next = search_node->next;
-            search_node->next = node;
-            node->prev = search_node;
+            if (search_node->next_) search_node->next_->prev_ = node;
+            node->next_ = search_node->next_;
+            search_node->next_ = node;
+            node->prev_ = search_node;
         }
     }
 
     void PopFront() {
         if (head == nullptr) return;
 
-        head->next->prev = nullptr;
-        head = head->next;
+        head->next_->prev_ = nullptr;
+        head = head->next_;
     }
 
     void PopBack() {
         if (head == nullptr) return;
 
-        tail->prev->next = nullptr;
-        tail = tail->prev;
+        tail->prev_->next_ = nullptr;
+        tail = tail->prev_;
     }
 
     void Remove(const T n) {
@@ -93,14 +149,26 @@ public:
         if (search_node == tail) return;
 
         if (search_node == head) {
-            search_node->next->prev = nullptr;
-            head = search_node->next;
+            search_node->next_->prev_ = nullptr;
+            head = search_node->next_;
         }
 
         if (search_node) {
-            search_node->prev->next = search_node->next;
-            search_node->next->prev = search_node->prev;
+            search_node->prev_->next_ = search_node->next_;
+            search_node->next_->prev_ = search_node->prev_;
         }
+    }
+
+    void Clear() {
+        std::shared_ptr<ListNode<T>> current = head->next_;
+
+        while (current) {
+            current->prev_.reset();
+            current = current->next_;
+        }
+
+        head.reset();
+        tail.reset();
     }
 
     void Print() const {
@@ -110,7 +178,7 @@ public:
 
         while (current) {
             std::cout << current->data_ << ' ';
-            current = current->next;
+            current = current->next_;
         }
         std::cout << '\n';
     }
@@ -125,7 +193,7 @@ public:
 
         while (current) {
             ++size;
-            current = current->next;
+            current = current->next_;
         }
 
         return size;
@@ -138,7 +206,7 @@ public:
 
             while (current) {
                 if (i == index) return current->data_;
-                current = current->next;
+                current = current->next_;
                 ++i;
             }
         }
@@ -154,7 +222,7 @@ public:
 
             while (current) {
                 if (i == index) return current->data_;
-                current = current->next;
+                current = current->next_;
                 ++i;
             }
         }
@@ -173,18 +241,30 @@ private:
 
         while (search_node != nullptr) {
             if (search_node->data_ == n) return search_node;
-            search_node = search_node->next;
+            search_node = search_node->next_;
         }
         return nullptr;
     }
 };
 
 int main() {
-    List<int> list1 { 1, 2, 3, 4, 5, 6 };
+    List<int> list1;
+    List<int> list2 { 2, 5, 3, 5 };
 
+    std::cout << "List 1 before: ";
     list1.Print();
 
-    list1[2] = 777;
+    std::cout << "List 2 before: ";
+    list2.Print();
 
+    list2 = list1;
+
+    list1.AddEnd(111);
+    list2.AddStart(222);
+
+    std::cout << "List 1 after: ";
     list1.Print();
+
+    std::cout << "List 2 after: ";
+    list2.Print();
 }
