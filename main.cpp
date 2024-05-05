@@ -22,25 +22,25 @@ template <class T>
 class List {
 public:
     List(std::initializer_list<T> init_list) : 
-        head{ std::make_shared<ListNode<T>>(*init_list.begin()) }, tail{ head } {
+        head_{ std::make_shared<ListNode<T>>(*init_list.begin()) }, tail_{ head_ } {
             for (auto it = init_list.begin() + 1; it != init_list.end(); ++it) {
                 AddEnd(*it);
             }
 
-            while (tail->next_ != nullptr) {
-                tail = tail->next_;
+            while (tail_->next_ != nullptr) {
+                tail_ = tail_->next_;
             }
         }
-    List() : head{ nullptr }, tail{ nullptr } {}
+    List() : head_{ nullptr }, tail_{ nullptr } {}
 
     List(const List& other) {
         std::shared_ptr<ListNode<T>> current = nullptr;
 
-        if (other->head == nullptr) {
+        if (other->head_ == nullptr) {
             return;
         }
 
-        if (head) {
+        if (head_) {
             Clear();
         }
 
@@ -49,13 +49,20 @@ public:
             current = current->next_;
         }
 
-        while (tail->next_) {
-            tail = tail->next_;
+        while (tail_->next_) {
+            tail_ = tail_->next_;
         }
     }
 
     List (List&& other) {
-        // Add move ctor
+        if (other.head_ == nullptr) return;
+        if (head_) Clear();
+
+        head_ = other.head_;
+        other.head_.reset();
+
+        tail_ = other.tail_;
+        other.tail_.reset();
     }
 
     List<T>& operator=(const List& other) {
@@ -63,56 +70,64 @@ public:
 
         std::shared_ptr<ListNode<T>> current = nullptr;
 
-        if (other.head == nullptr) {
-            return *this;
-        }
+        if (other.head_ == nullptr) return *this;
+        
 
-        if (head) {
-            Clear();
-        }
+        if (head_) Clear();
 
-        current = other.head;
+        current = other.head_;
 
         while (current) {
             AddEnd(current->data_);
             current = current->next_;
         }
 
-        while (tail->next_) {
-            tail = tail->next_;
+        while (tail_->next_) {
+            tail_ = tail_->next_;
         }
 
         return *this;      
     }
 
     List<T>& operator=(List&& other) {
-        // Add move assignment operator
+        if (&other == this) return *this;
+
+        if (other.head_ == nullptr) return *this;
+        if (head_) Clear();
+
+        head_ = other.head_;
+        other.head_.reset();
+
+        tail_ = other.tail_;
+        other.tail_.reset();
+
+        return *this;
     }
 
     void AddStart(const T n) {
         auto node = std::make_shared<ListNode<T>>(n);
 
-        if (head == nullptr) tail = node;
+        if (head_ == nullptr) tail_ = node;
         else {
-            head->prev_ = node;
-            node->next_ = head;
+            head_->prev_ = node;
+            node->next_ = head_;
         }
 
-        head = node;
+        head_ = node;
     }
 
     void AddEnd(const T n) {
         auto node = std::make_shared<ListNode<T>>(n);
 
-        if (head == nullptr) {
-            head = node;
+        if (head_ == nullptr) {
+            head_ = node;
         }
         else {
-            tail->next_ = node;
-            node->prev_ = tail;
+            tail_->next_ = node;
+            node->prev_ = tail_;
         }
         
-        tail = node;
+        tail_ = node;
     }
 
     void InsertAfter(const T after_n, const T n) {
@@ -121,7 +136,7 @@ public:
         if (search_node) {
             auto node = std::make_shared<ListNode<T>>(n);
 
-            if (search_node == tail) tail = node;
+            if (search_node == tail_) tail_ = node;
             if (search_node->next_) search_node->next_->prev_ = node;
             node->next_ = search_node->next_;
             search_node->next_ = node;
@@ -130,27 +145,27 @@ public:
     }
 
     void PopFront() {
-        if (head == nullptr) return;
+        if (head_ == nullptr) return;
 
-        head->next_->prev_ = nullptr;
-        head = head->next_;
+        head_->next_->prev_ = nullptr;
+        head_ = head_->next_;
     }
 
     void PopBack() {
-        if (head == nullptr) return;
+        if (head_ == nullptr) return;
 
-        tail->prev_->next_ = nullptr;
-        tail = tail->prev_;
+        tail_->prev_->next_ = nullptr;
+        tail_ = tail_->prev_;
     }
 
     void Remove(const T n) {
         auto search_node = LinearSearch_(n);
 
-        if (search_node == tail) return;
+        if (search_node == tail_) return;
 
-        if (search_node == head) {
+        if (search_node == head_) {
             search_node->next_->prev_ = nullptr;
-            head = search_node->next_;
+            head_ = search_node->next_;
         }
 
         if (search_node) {
@@ -160,21 +175,21 @@ public:
     }
 
     void Clear() {
-        std::shared_ptr<ListNode<T>> current = head->next_;
+        std::shared_ptr<ListNode<T>> current = head_->next_;
 
         while (current) {
             current->prev_.reset();
             current = current->next_;
         }
 
-        head.reset();
-        tail.reset();
+        head_.reset();
+        tail_.reset();
     }
 
     void Print() const {
-        if (head == nullptr) return;
+        if (head_ == nullptr) return;
 
-        std::shared_ptr<ListNode<T>> current = head;
+        std::shared_ptr<ListNode<T>> current = head_;
 
         while (current) {
             std::cout << current->data_ << ' ';
@@ -186,10 +201,10 @@ public:
     size_t Size() const {
         size_t size = 0;
 
-        if (head == nullptr) return 0;
-        if (head == tail) return 1;
+        if (head_ == nullptr) return 0;
+        if (head_ == tail_) return 1;
 
-        std::shared_ptr<ListNode<T>> current = head;
+        std::shared_ptr<ListNode<T>> current = head_;
 
         while (current) {
             ++size;
@@ -202,7 +217,7 @@ public:
     T& operator[](const size_t index) {
         if (index >= 0 && index < Size()) {
             size_t i = 0;
-            std::shared_ptr<ListNode<T>> current = head;
+            std::shared_ptr<ListNode<T>> current = head_;
 
             while (current) {
                 if (i == index) return current->data_;
@@ -218,7 +233,7 @@ public:
     const T& operator[](const size_t index) const {
         if (index >= 0 && index < Size()) {
             size_t i = 0;
-            std::shared_ptr<ListNode<T>> current = head;
+            std::shared_ptr<ListNode<T>> current = head_;
 
             while (current) {
                 if (i == index) return current->data_;
@@ -232,12 +247,12 @@ public:
     }
 
 private:
-    std::shared_ptr<ListNode<T>> head;
-    std::shared_ptr<ListNode<T>> tail;
+    std::shared_ptr<ListNode<T>> head_;
+    std::shared_ptr<ListNode<T>> tail_;
 
     // Trouble with strings
     std::shared_ptr<ListNode<T>> LinearSearch_(T n) const {
-        std::shared_ptr<ListNode<T>> search_node = head;
+        std::shared_ptr<ListNode<T>> search_node = head_;
 
         while (search_node != nullptr) {
             if (search_node->data_ == n) return search_node;
@@ -248,23 +263,14 @@ private:
 };
 
 int main() {
-    List<int> list1;
-    List<int> list2 { 2, 5, 3, 5 };
+    List<int> list1{ 1, 2, 3, 4, 5 };
+    List<int> list2{ 4, 3, 5, 6 };
+
+    list2 = std::move(list1);
 
     std::cout << "List 1 before: ";
     list1.Print();
 
     std::cout << "List 2 before: ";
-    list2.Print();
-
-    list2 = list1;
-
-    list1.AddEnd(111);
-    list2.AddStart(222);
-
-    std::cout << "List 1 after: ";
-    list1.Print();
-
-    std::cout << "List 2 after: ";
     list2.Print();
 }
